@@ -2,6 +2,8 @@
 *.rbc
 .bundle
 .config
+.vagrant
+.librarian
 coverage
 InstalledFiles
 lib/bundler/man
@@ -11,6 +13,9 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+cookbooks
+
+.DS_Store
 
 # YARD artifacts
 .yardoc
