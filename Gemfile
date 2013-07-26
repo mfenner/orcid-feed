@@ -5,6 +5,8 @@ gem 'sinatra-contrib'
 gem 'faraday'
 gem 'faraday_middleware'
 gem 'nokogiri'
+gem 'builder'
+gem "rdiscount"
 gem 'log4r'
 
 group :test do

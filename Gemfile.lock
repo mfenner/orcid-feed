@@ -52,6 +52,7 @@ GEM
       rack
     rack-test (0.6.2)
       rack (>= 1.0)
+    rdiscount (2.1.6)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
       rspec-expectations (~> 2.12.0)
@@ -82,6 +83,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  builder
   capybara (~> 2.1.0)
   cucumber (~> 1.2.1)
   factory_girl (~> 4.2.0)
@@ -90,6 +92,7 @@ DEPENDENCIES
   log4r
   nokogiri
   poltergeist (~> 1.3.0)
+  rdiscount
   rspec (~> 2.12.0)
   sinatra
   sinatra-contrib
