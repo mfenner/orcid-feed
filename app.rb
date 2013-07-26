@@ -6,17 +6,21 @@ require 'faraday_middleware'
 require 'builder'
 require 'rdiscount'
 require 'json'
-require 'erubis'
 
 configure do
   config_file 'config/settings.yml'
 
   #set :environment, :development
-  set :erb, :escape_html => true
+end
+
+helpers do
+  def h(text)
+    Rack::Utils.escape_html(text)
+  end
 end
 
 get '/' do
-  markdown :index, :layout_engine => :erb
+  markdown :index, :layout_engine => :erb, :escape_html => false
 end
 
 get '/:id', :provides => ['rss', 'atom', 'xml'] do

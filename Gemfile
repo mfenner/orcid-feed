@@ -8,7 +8,6 @@ gem 'nokogiri'
 gem 'builder'
 gem "rdiscount"
 gem 'log4r'
-gem "erubis"
 
 group :test do
   gem "rspec", "~> 2.12.0"
