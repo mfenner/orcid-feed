@@ -5,33 +5,14 @@ require 'faraday'
 require 'faraday_middleware'
 require 'builder'
 require 'rdiscount'
-
-require 'log4r'
-include Log4r
-logger = Log4r::Logger.new('test')
-logger.trace = true
-logger.level = DEBUG
-
-formatter = Log4r::PatternFormatter.new(:pattern => "[%l] %t  %M")
-Log4r::Logger['test'].outputters << Log4r::Outputter.stdout
-Log4r::Logger['test'].outputters << Log4r::FileOutputter.new('logtest', 
-                                              :filename =>  'log/app.log',
-                                              :formatter => formatter)
-
-logger.info 'got log4r set up'
-
-require_relative 'lib/orcid'
+require 'json'
+require 'erubis'
 
 configure do
   config_file 'config/settings.yml'
 
-  # Set up for http requests to orcid.org public API
-  pub_orcid_org = Faraday.new(:url => 'http://pub.orcid.org') do |c|
-    c.use FaradayMiddleware::FollowRedirects, :limit => 5
-    c.adapter :net_http
-  end
-
-  set :pub_orcid_org, pub_orcid_org
+  #set :environment, :development
+  set :erb, :escape_html => true
 end
 
 get '/' do
@@ -40,9 +21,39 @@ end
 
 get '/:id', :provides => ['rss', 'atom', 'xml'] do
   @id = params[:id]
-  if params[:id].strip =~ /\A[0-9]{4}\-[0-9]{4}\-[0-9]{4}\-[0-9]{3}[0-9X]\Z/
-    builder :rss
+  if is_orcid?(@id)
+  	profile = get_profile(@id)
+  	if profile
+  	  @title = [profile['personal-details']['given-names']['value'], profile['personal-details']['family-name']['value']].join(" ")
+  	  @description = profile['biography'] ? profile['biography']['value'] : nil 
+      builder :rss
+  	else
+      builder :error
+  	end
   else
     builder :error
+  end
+end
+
+def is_orcid?(string)
+  string.strip =~ /\A[0-9]{4}\-[0-9]{4}\-[0-9]{4}\-[0-9]{3}[0-9X]\Z/
+end
+
+def get_profile(id)
+  conn = Faraday.new(:url => 'http://pub.orcid.org') do |c|
+  	c.request :json
+  	c.response :json, :content_type => /\bjson$/
+    c.adapter Faraday.default_adapter
+  end
+
+  response = conn.get do |r|
+    r.url "#{id}/orcid-bio"
+    r.headers['Accept'] = 'application/json'
+  end
+
+  if response.status == 200
+  	bio = response.body['orcid-profile']['orcid-bio']
+  else
+  	nil
   end
 end
