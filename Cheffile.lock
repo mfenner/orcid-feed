@@ -30,7 +30,7 @@ GIT
 GIT
   remote: https://github.com/mfenner/orcid-feed-cookbook.git
   ref: master
-  sha: 270eb808169bbccf8aa0a7ee972a7f49d025abb0
+  sha: 352c1963f6ead01df5b8e4457f489bac57afcb49
   specs:
     orcid-feed (1.0.0)
       apt (>= 0.0.0)
