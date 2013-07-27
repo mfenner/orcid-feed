@@ -5,7 +5,7 @@ xml.instruct! :xml, :version => "1.0", :encoding => "utf-8"
     xml.channel do
 	  xml.title @title
 	  xml.description @description
-	  xml.link "#{settings.host}/#{@id}.rss"
+	  xml.link "http://#{settings.host}/#{@id}.rss"
 
   	@items.each do |item|
       xml.item do
