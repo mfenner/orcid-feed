@@ -81,10 +81,10 @@ def get_profile(id)
   end
 end
 
-def get_name(profile)
+def get_name(profile, reversed=false)
   given_names = profile['orcid-bio']['personal-details']["given-names"]["value"]
   family_name = profile['orcid-bio']['personal-details']["family-name"].nil? ? "" : profile['orcid-bio']['personal-details']["family-name"]["value"]
-  name = [given_names, family_name].join(" ")
+  name = reversed ? [family_name, given_names].join(", ") : [given_names, family_name].join(" ")
 end
 
 def get_biography(profile)
@@ -97,22 +97,27 @@ def get_works(profile)
     works = profile["orcid-activities"]["orcid-works"]["orcid-work"]
     works = works.map do |work| 
       if work["work-citation"] and work["work-citation"]["work-citation-type"].upcase == "BIBTEX"
-        work["work-citation"]["citation"] 
+        s = work["work-citation"]["citation"]
+        start = s.index("{") + 1
+        stop = s.index(",")
+        s[start..stop] = ""
+        entry = BibTeX.parse(s, :allow_missing_keys => true)[0]
+        entry.key = entry.send(:default_key)
       else
         entry = BibTeX::Entry.new({:type => work["work-type"] ? WORK_TYPES[work["work-type"]] : :misc,
                                    :title => work["work-title"]["title"]["value"],
-                                   :author => get_name(profile)})
+                                   :author => get_name(profile, true)})
         entry.journal = work["work-title"]["subtitle"]["value"] if work["work-title"]["subtitle"]
         entry.year = work["publication-date"]["year"]["value"] if work["publication-date"]
-        if work["work-external-identifiers"] and work["work-external-identifiers"]["work-external-identifier"] and work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-type"].upcase == "DOI"
-          doi = work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-id"]["value"]
-          entry.doi = doi 
-          entry.url = "http://dx.doi.org/#{doi}"
-        end
-        entry.to_s
       end
+      if work["work-external-identifiers"] and work["work-external-identifiers"]["work-external-identifier"] and work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-type"].upcase == "DOI"
+        doi = work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-id"]["value"]
+        entry.doi = doi 
+        entry.url = "http://dx.doi.org/#{doi}"
+      end
+      entry.to_s
     end
-    works = BibTeX.parse(works.join("\n"))
+    BibTeX.parse(works.join("\n"))
   else
     nil
   end
