@@ -1,16 +1,29 @@
 # -*- coding: utf-8 -*-
+
 require 'sinatra'
 require 'sinatra/config_file'
+require 'sinatra/respond_to'
 require 'faraday'
 require 'faraday_middleware'
 require 'builder'
 require 'rdiscount'
+require 'bibtex'
+require 'citeproc'
 require 'json'
+
+Sinatra::Application.register Sinatra::RespondTo
+
+WORK_TYPES = { "journal-article" => :article,
+               "conference-proceedings" => :inproceedings,
+               "other" => :misc } 
 
 configure do
   config_file 'config/settings.yml'
 
-  #set :environment, :development
+  set :environment, :development
+  set :default_content, :rss
+
+  mime_type :bib, 'application/x-bibtex'
 end
 
 helpers do
@@ -20,22 +33,28 @@ helpers do
 end
 
 get '/' do
-  markdown :index, :layout_engine => :erb, :escape_html => false
+  markdown :index, :layout_engine => :erb, :layout => :layout
 end
 
-get '/:id', :provides => ['rss', 'atom', 'xml'] do
+get '/:id' do
   @id = params[:id]
-  if is_orcid?(@id)
-  	profile = get_profile(@id)
-  	if profile
-  	  @title = [profile['personal-details']['given-names']['value'], profile['personal-details']['family-name']['value']].join(" ")
-  	  @description = profile['biography'] ? profile['biography']['value'] : nil 
-      builder :rss
-  	else
-      builder :error
-  	end
-  else
-    builder :error
+  profile = is_orcid?(@id) ? get_profile(@id) : nil
+
+  respond_to do |format|
+    format.bib do
+      works = get_works(profile)
+    end
+    format.rss do 
+      if profile
+        @title = get_name(profile)
+        @description = get_biography(profile)
+        @items = get_works(profile)
+      else
+        @title = "Error: No ORCID record for \"#{h params[:id]}\" found." 
+        @description = nil
+      end
+      builder :show
+    end
   end
 end
 
@@ -51,13 +70,50 @@ def get_profile(id)
   end
 
   response = conn.get do |r|
-    r.url "#{id}/orcid-bio"
+    r.url "#{id}/orcid-profile"
     r.headers['Accept'] = 'application/json'
   end
 
   if response.status == 200
-  	bio = response.body['orcid-profile']['orcid-bio']
+  	profile = response.body['orcid-profile']
   else
   	nil
+  end
+end
+
+def get_name(profile)
+  given_names = profile['orcid-bio']['personal-details']["given-names"]["value"]
+  family_name = profile['orcid-bio']['personal-details']["family-name"].nil? ? "" : profile['orcid-bio']['personal-details']["family-name"]["value"]
+  name = [given_names, family_name].join(" ")
+end
+
+def get_biography(profile)
+  profile['orcid-bio']['biography'] ? profile['orcid-bio']['biography']['value'] : nil 
+end
+
+def get_works(profile)
+  # Find all works with citation-type bibtex, convert the rest into bibtex
+  if profile["orcid-activities"] and profile["orcid-activities"]["orcid-works"]["orcid-work"]
+    works = profile["orcid-activities"]["orcid-works"]["orcid-work"]
+    works = works.map do |work| 
+      if work["work-citation"] and work["work-citation"]["work-citation-type"].upcase == "BIBTEX"
+        work["work-citation"]["citation"] 
+      else
+        entry = BibTeX::Entry.new({:type => work["work-type"] ? WORK_TYPES[work["work-type"]] : :misc,
+                                   :title => work["work-title"]["title"]["value"],
+                                   :author => get_name(profile)})
+        entry.journal = work["work-title"]["subtitle"]["value"] if work["work-title"]["subtitle"]
+        entry.year = work["publication-date"]["year"]["value"] if work["publication-date"]
+        if work["work-external-identifiers"] and work["work-external-identifiers"]["work-external-identifier"] and work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-type"].upcase == "DOI"
+          doi = work["work-external-identifiers"]["work-external-identifier"][0]["work-external-identifier-id"]["value"]
+          entry.doi = doi 
+          entry.url = "http://dx.doi.org/#{doi}"
+        end
+        entry.to_s
+      end
+    end
+    works = BibTeX.parse(works.join("\n"))
+  else
+    nil
   end
 end

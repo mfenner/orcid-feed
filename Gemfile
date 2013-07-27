@@ -2,11 +2,14 @@ source "http://rubygems.org"
 
 gem 'sinatra'
 gem 'sinatra-contrib'
+gem 'sinatra-respond_to'
 gem 'faraday'
 gem 'faraday_middleware'
 gem 'nokogiri'
 gem 'builder'
-gem "rdiscount"
+gem 'rdiscount'
+gem 'bibtex-ruby'
+gem 'citeproc-ruby', :git => 'git://github.com/inukshuk/citeproc-ruby.git'
 gem 'log4r'
 
 group :test do
