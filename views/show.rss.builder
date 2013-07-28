@@ -3,24 +3,26 @@
 xml.instruct! :xml, :version => "1.0", :encoding => "utf-8"
   xml.rss :version => "1.0", "xmlns:dc" => "http://purl.org/dc/terms/", "xmlns:prism" => "http://prismstandard.org/namespaces/basic/2.1/" do
     xml.channel do
-	  xml.title @title
-	  xml.description @description
-	  xml.link "http://#{settings.host}/#{@id}.rss"
+	  xml.title @profile.name
+	  xml.description @profile.biography
+	  xml.link "http://#{settings.host}/#{@profile.orcid}.rss"
+    xml.tag!("dc:rights", "http://creativecommons.org/publicdomain/zero/1.0/")
+    xml.tag!("dc:date", @profile.updated_at.iso8601)
 
-  	@items.each do |item|
+  	@profile.works.each do |work|
       xml.item do
-        xml.title item.title
-        xml.link item.url rescue nil
-        xml.tag!("dc:title", item.title)
-        xml.tag!("dc:publisher", item.publisher) rescue nil
-        xml.tag!("dc:creator", item.author)
-        xml.tag!("prism:doi", item.doi) rescue nil
-        xml.tag!("prism:url", item.url) rescue nil
-        xml.tag!("prism:publicationName", item.journal) rescue nil
-        xml.tag!("prism:volume", item.volume) rescue nil
-        xml.tag!("prism:number", item.number) rescue nil
-        xml.tag!("prism:pageRange", item.pages) rescue nil
-        xml.tag!("prism:publicationDate", item.year) rescue nil
+        xml.title work.title
+        xml.link work.url if work.url
+        xml.tag!("dc:title", work.title)
+        xml.tag!("dc:publisher", work.publisher) if work.publisher
+        xml.tag!("dc:creator", work.author)
+        xml.tag!("prism:doi", work.doi) if work.doi
+        xml.tag!("prism:url", work.url) if work.url
+        xml.tag!("prism:publicationName", work.journal) if work.journal
+        xml.tag!("prism:volume", work.volume) if work.volume
+        xml.tag!("prism:number", work.number) if work.number
+        xml.tag!("prism:pageRange", work.pages) if work.pages
+        xml.tag!("prism:publicationDate", work.year)
       end
     end
   end
