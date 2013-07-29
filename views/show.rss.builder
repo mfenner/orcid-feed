@@ -12,16 +12,16 @@ xml.instruct! :xml, :version => "1.0", :encoding => "utf-8"
   	@profile.works.each do |work|
       xml.item do
         xml.title work.title
-        # xml.link work.url if work.url
+        xml.link work.url rescue nil
         xml.tag!("dc:title", work.title)
-        # xml.tag!("dc:publisher", work.publisher) if work.publisher
-        # xml.tag!("dc:creator", work.author)
-        # xml.tag!("prism:doi", work.doi) if work.doi
-        # xml.tag!("prism:url", work.url) if work.url
-        # xml.tag!("prism:publicationName", work.journal) if work.journal
-        # xml.tag!("prism:volume", work.volume) if work.volume
-        # xml.tag!("prism:number", work.number) if work.number
-        # xml.tag!("prism:pageRange", work.pages) if work.pages
+        xml.tag!("dc:publisher", work.publisher) if work.publisher
+        xml.tag!("dc:creator", work.author)
+        xml.tag!("prism:doi", work.doi) rescue nil
+        xml.tag!("prism:url", work.url) rescue nil
+        xml.tag!("prism:publicationName", work.journal) if work.journal
+        xml.tag!("prism:volume", work.volume) rescue nil
+        xml.tag!("prism:number", work.number) rescue nil
+        xml.tag!("prism:pageRange", work.pages) if work.pages
         xml.tag!("prism:publicationDate", work.year)
       end
     end
