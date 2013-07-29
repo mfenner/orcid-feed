@@ -2,8 +2,6 @@
 
 class Work < BibTeX::Entry
 
-  attr_accessor :doi, :url, :number, :volume, :pages
-
   WORK_TYPES = { article:       "journal-article", 
                  inproceedings: "conference-proceedings",
                  misc:          "other" } 

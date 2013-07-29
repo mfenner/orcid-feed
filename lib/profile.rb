@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require_relative 'work'
-
 class Profile
 
   attr_accessor :orcid, :created_at, :updated_at, :biography, :given_names, :family_name, :name, :credit_name, :other_names, :reversed_name, :works, :a
@@ -35,7 +33,12 @@ class Profile
     else
       works = ""
     end
-    @works = Bibliography.parse(works)
+    @works = BibTeX.parse(works)
+
+    # @works = Bibliography.new
+    # if result["orcid-activities"] and result["orcid-activities"]["orcid-works"]["orcid-work"]
+    #   result["orcid-activities"]["orcid-works"]["orcid-work"].each { |work| @works << Work.new(work, reversed_name) }
+    # end
 
     # Use full name in bibliography
     @works.extend_initials [given_names, family_name]
