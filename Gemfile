@@ -8,7 +8,7 @@ gem 'faraday_middleware'
 gem 'nokogiri'
 gem 'builder'
 gem 'rdiscount'
-gem 'bibtex-ruby'
+gem "bibtex-ruby", "2.3.2"
 gem 'rdf'
 gem 'multi_json'
 gem 'json'
