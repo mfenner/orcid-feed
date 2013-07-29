@@ -13,7 +13,7 @@ gem 'rdf'
 gem 'multi_json'
 gem 'json'
 gem 'citeproc-ruby', :git => 'git://github.com/inukshuk/citeproc-ruby.git'
-gem 'log4r'
+gem "racksh"
 
 group :test do
   gem "rspec", "~> 2.12.0"

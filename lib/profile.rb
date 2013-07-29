@@ -29,11 +29,15 @@ class Profile
     @family_name = result['orcid-bio']['personal-details']["family-name"].nil? ? "" : result['orcid-bio']['personal-details']["family-name"]["value"]
     @credit_name = result['orcid-bio']['personal-details']['credit-name'] ? result['orcid-bio']['personal-details']['credit-name']['value'] : nil
     
-    @works = BibTeX::Bibliography.new
     if result["orcid-activities"] and result["orcid-activities"]["orcid-works"]["orcid-work"]
-      result["orcid-activities"]["orcid-works"]["orcid-work"].each { |work| @works << Work.new(work, reversed_name) }
+      works = result["orcid-activities"]["orcid-works"]["orcid-work"].map { |work| Work.new(work, reversed_name) }.uniq
+      works = works.join("\n")
+    else
+      works = ""
     end
-    @works.select_duplicates_by :year, :title
+    @works = Bibliography.parse(works)
+
+    # Use full name in bibliography
     @works.extend_initials [given_names, family_name]
   end
 

@@ -17,6 +17,7 @@ Sinatra::Application.register Sinatra::RespondTo
 
 require_relative 'lib/helpers'
 require_relative 'lib/profile'
+require_relative 'lib/bibliography'
 require_relative 'lib/work'
 
 configure do
