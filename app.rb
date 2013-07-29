@@ -25,7 +25,6 @@ configure do
   #set :environment, :development
 
   mime_type :bib, 'application/x-bibtex'
-  mime_type :json, 'application/vnd.citationstyles.csl+json'
   mime_type :txt, 'text/x-bibliography'
 
   file = File.new("#{settings.root}/log/#{settings.environment}.log", 'a+')
